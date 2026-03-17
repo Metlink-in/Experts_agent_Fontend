@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { search } from "./vectorStore";
 
-const EXPERTS_API_URL = "https://experts-agent-sjis.vercel.app/experts";
+const EXPERTS_API_URL = "/api/experts";
 
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY,

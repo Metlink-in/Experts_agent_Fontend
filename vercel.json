@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/experts",
+      "destination": "https://experts-agent-sjis.vercel.app/experts"
+    }
+  ]
+}
