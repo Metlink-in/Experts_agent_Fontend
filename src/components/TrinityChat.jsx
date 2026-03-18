@@ -150,16 +150,15 @@ Please recommend the best consultant for me from the Available Experts list, inc
       const replyData = await askAI(summary);
       setTyping(false);
       
-      if (replyData.recommendation && replyData.expert) {
+      if (replyData.recommendation && replyData.experts && replyData.experts.length > 0) {
         addBotMessage({ 
           type: "expert-recommendation", 
           text: replyData.text,
-          expert: replyData.expert
+          experts: replyData.experts
         });
       } else {
         addBotMessage({ type: "text", text: replyData.text });
       }
-      addBotMessage({ type: "cta" });
     } else {
       setTyping(false);
       addBotMessage({
@@ -268,23 +267,42 @@ Please recommend the best consultant for me from the Available Experts list, inc
 
       case "expert-recommendation":
         messageContent = (
-          <div className="tc-bubble bot expert-recommendation-bubble">
-            <div className="expert-avatar-large">
-              <img 
-                src={m.expert?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(m.expert?.name || "Expert")}&background=random&color=fff&size=200`} 
-                alt={m.expert?.name || "Expert"} 
-                onError={(e) => {
-                  if (!e.target.dataset.fallback) {
-                    e.target.dataset.fallback = "true";
-                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(m.expert?.name || "Expert")}&background=random&color=fff&size=200`;
-                  }
-                }}
-              />
-            </div>
-            <div className="expert-details-box">
-              <p className="expert-name-highlight">{m.expert?.name}</p>
-              <p className="expert-price-tag">{m.expert?.price?.toString().startsWith('$') ? m.expert.price : `$${m.expert?.price}`}</p>
-              <div className="expert-text-content">{renderBold(m.text)}</div>
+          <div className="tc-bubble bot expert-recommendation-slider-container">
+            <div className="expert-recommendation-intro">{renderBold(m.text)}</div>
+            <div className="expert-slider-wrapper">
+              <div className="expert-slider-track">
+                {m.experts?.map((expert, idx) => (
+                  <motion.div 
+                    key={idx} 
+                    className="expert-card-slide"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                  >
+                    <div className="expert-avatar-medium">
+                      <img 
+                        src={expert.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(expert.name || "Expert")}&background=random&color=fff&size=120`} 
+                        alt={expert.name} 
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          if (!e.target.dataset.fallback) {
+                            e.target.dataset.fallback = "true";
+                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(expert.name || "Expert")}&background=random&color=fff&size=120`;
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="expert-info-slide">
+                      <p className="expert-name-slide">{expert.name}</p>
+                      <p className="expert-price-tag-slide">${expert.price}</p>
+                      <p className="expert-desc-slide">{expert.description}</p>
+                      <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="expert-select-btn">
+                        Book Meeting
+                      </a>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </div>
           </div>
         );

@@ -196,14 +196,14 @@ ${JSON.stringify(experts, null, 2)}
 
 Instructions:
 1. If the user is just greeting you, respond warmly.
-2. If the user has completed their questionnaire (details will be in the input) or asks for a recommendation, you MUST select the BEST consultant from the "Available Experts" list above.
-3. CRITICAL: You MUST ALWAYS pick at least one expert if the list is not empty. Even if the match is not perfect, select the most relevant one. NEVER say "no experts available" or "no matches found" if there are experts in the list.
+2. If the user has completed their questionnaire (details will be in the input) or asks for a recommendation, you MUST select the TOP 3 most suitable consultants from the "Available Experts" list above.
+3. CRITICAL: You MUST ALWAYS pick at least 3 experts if the list has 3 or more. Even if the matches are not perfect, select the most relevant ones. NEVER say "no experts available" or "no matches found" if there are experts in the list.
 4. If you are recommending a consultant:
    - Your response MUST be a valid JSON object with the following structure:
      {
        "recommendation": true,
-       "text": "Your professional response recommending the expert and why they fit.",
-       "expertName": "EXACT_NAME_FROM_LIST (e.g., BrianLee)",
+       "text": "Your professional response recommending the experts and why they fit.",
+       "experts": ["EXACT_NAME_1", "EXACT_NAME_2", "EXACT_NAME_3"],
        "bookingLink": "https://calendly.com/cj-trinityagents/30min"
      }
 5. If you are NOT recommending a consultant (general chat ONLY):
@@ -230,20 +230,38 @@ ${question}
     
     const parsed = JSON.parse(response.choices[0].message.content);
 
-    if (parsed.recommendation && parsed.expertName && experts.length > 0) {
-      const match = experts.find(e => 
-        e.name.toLowerCase() === parsed.expertName.toLowerCase().replace(/\s+/g, '')
-      ) || experts[0]; 
+    if (parsed.recommendation && experts.length > 0) {
+      let expertNames = [];
+      if (Array.isArray(parsed.experts)) {
+        expertNames = parsed.experts;
+      } else if (parsed.expertName) {
+        expertNames = [parsed.expertName];
+      }
 
-      if (match) {
+      const matchedExperts = expertNames.map(expertItem => {
+        let name = "";
+        if (typeof expertItem === 'string') {
+          name = expertItem;
+        } else if (expertItem && typeof expertItem === 'object') {
+          name = expertItem.name || expertItem.expertName || Object.values(expertItem)[0] || "";
+        }
+        if (!name || typeof name !== 'string') return null;
+        
+        return experts.find(e => 
+          e.name && e.name.toLowerCase() === name.toLowerCase().replace(/\s+/g, '')
+        );
+      }).filter(Boolean).slice(0, 3); // Max 3
+
+      if (matchedExperts.length > 0) {
         return {
           ...parsed,
-          expert: {
-            name: match.name.replace(/([A-Z])/g, ' $1').trim(), 
+          experts: matchedExperts.map(match => ({
+            name: match.name.replace(/([A-Z])/g, ' $1').trim(),
             description: match.description,
-            price: match.increased_price || (match.base_price * 1.2), 
-            image: match.image_url
-          }
+            price: match.increased_price || (match.base_price * 1.2),
+            image: match.image_url,
+            link: match.link
+          }))
         };
       }
     }
