@@ -48,7 +48,7 @@ const QUESTIONS = [
 
 const BOT_AVATAR = "🤖";
 const USER_AVATAR = "👤";
-const BOOKING_URL = "https://calendly.com/cj-trinityagents/30min";
+const BOOKING_URL = "https://trinityagents.ai/en/booking";
 
 function formatTime() {
   return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
